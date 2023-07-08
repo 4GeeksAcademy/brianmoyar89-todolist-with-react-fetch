@@ -52,23 +52,13 @@ function TodoList() {
       });
   }
 
-  function deleteItem(id) {
-    let updatedItems = []
-    updatedItems = items.filter((task,index) => {
-      if (index !==id){
-        return task
-      }   
-    })
-    console.log(updatedItems)
+  function deleteItem(itemIndex) {
+    const updatedItems = items.filter((item, index) => index !== itemIndex);
     setItems(updatedItems);
-  }
-
-
-
-    // Paso 3: Actualizar la lista completa de tareas en la API después de eliminar una tarea
+  
     fetch("https://assets.breatheco.de/apis/fake/todos/user/brianmoyar89", {
       method: "PUT",
-      body: JSON.stringify(item),
+      body: JSON.stringify(updatedItems),
       headers: {
         "Content-Type": "application/json"
       }
@@ -81,6 +71,7 @@ function TodoList() {
         console.log(error);
       });
   }
+  
 
   function clearList() {
     // Paso 4: Eliminar toda la lista de tareas en la API y actualizar el estado local
