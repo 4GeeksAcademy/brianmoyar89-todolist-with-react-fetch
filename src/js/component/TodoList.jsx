@@ -4,23 +4,9 @@ function TodoList() {
   const [newItem, setNewItem] = useState("");
   const [items, setItems] = useState([]);
 
-  var option = {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json"
-    }
-  } 
-
-  useEffect (()=>{
-    fetch("https://assets.breatheco.de/apis/fake/todos/user/brianmoyar89", option)
-    .then((resp)=>resp.json())
-    .then((data)=>{
-      setItems(data);
-    })
-    .catch((error)=>{
-      console.log(error);
-    })
-  },[]);
+  useEffect(() => {
+    fetchTodoList();
+  }, []);
 
   function addItem() {
     if (!newItem) {
@@ -36,26 +22,20 @@ function TodoList() {
     const updatedItems = [...items, item];
     setItems(updatedItems);
     setNewItem("");
-    fetch("https://assets.breatheco.de/apis/fake/todos/user/brianmoyar89", {
-      method: "PUT",
-      body: JSON.stringify(updatedItems),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
-      .then((resp) => resp.json())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    updateTodoList(updatedItems);
   }
 
   function deleteItem(itemIndex) {
-    const updatedItems = items.filter((item, index) => index !== itemIndex);
-    setItems(updatedItems);
-  
+    if (items.length > 1) {
+      const updatedItems = items.filter((_item, index) => index !== itemIndex);
+      setItems(updatedItems);
+      updateTodoList(updatedItems);
+    } else {
+      alert("Debe haber al menos una tarea en la lista.");
+    }
+  }
+
+  function updateTodoList(updatedItems) {
     fetch("https://assets.breatheco.de/apis/fake/todos/user/brianmoyar89", {
       method: "PUT",
       body: JSON.stringify(updatedItems),
@@ -66,17 +46,49 @@ function TodoList() {
       .then((resp) => resp.json())
       .then((data) => {
         console.log(data);
+        fetchTodoList();
       })
       .catch((error) => {
         console.log(error);
       });
   }
-  
 
   function clearList() {
-    // Paso 4: Eliminar toda la lista de tareas en la API y actualizar el estado local
     fetch("https://assets.breatheco.de/apis/fake/todos/user/brianmoyar89", {
       method: "DELETE"
+    })
+      .then((resp) => resp.json())
+      .then((data) => {
+        console.log(data);
+        setItems([]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  function fetchTodoList() {
+    fetch("https://assets.breatheco.de/apis/fake/todos/user/brianmoyar89")
+      .then((resp) => resp.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setItems(data);
+        } else {
+          crearUsuario();
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  function crearUsuario() {
+    fetch("https://assets.breatheco.de/apis/fake/todos/user/brianmoyar89", {
+      method: "POST",
+      body: JSON.stringify([]),
+      headers: {
+        "Content-Type": "application/json"
+      }
     })
       .then((resp) => resp.json())
       .then((data) => {
@@ -104,17 +116,15 @@ function TodoList() {
       />
       <button onClick={addItem}>Add</button>
       <ul>
-        {Array.isArray(items) && items.map((item, index) => (
-          <li key={index}>
-            {item.label}{" "}
-            <button
-              className="delete-button"
-              onClick={() => deleteItem(index)}  
-            >
-              ❌
-            </button>
-          </li>
-        ))}
+        {Array.isArray(items) &&
+          items.map((item, index) => (
+            <li key={index}>
+              {item.label}{" "}
+              <button className="delete-button" onClick={() => deleteItem(index)}>
+                ❌
+              </button>
+            </li>
+          ))}
       </ul>
       <p>Usted tiene {items.length} tarea(s) pendiente(s).</p>
       <button onClick={clearList}>Clear List</button>
